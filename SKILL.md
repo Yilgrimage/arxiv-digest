@@ -115,7 +115,7 @@ bash scripts/query_arxiv.sh "your topic" 5
 
 ## 数据源与热度/相关性架构
 
-当前 skill 采用 **三源并行 + LLM rerank 融合** 架构：
+当前 skill 采用 **三源并行 + LLM rerank + 外部热度信号** 架构：
 
 | 板块 | 来源 | 排序依据 | 代表什么 |
 |------|------|----------|----------|
@@ -123,11 +123,26 @@ bash scripts/query_arxiv.sh "your topic" 5
 | 🔥 跨领域热门 | alphaxiv.org 首页抓取 | alphaxiv 内部热度算法 | **热度** — 全 AI 领域社区讨论度最高的论文 |
 | 🤗 HuggingFace Daily | huggingface.co/papers 页面抓取 | 社区 curated | **精选** — HuggingFace 社区每日精选论文 |
 
+**外部热度信号**（注入日报供阅读参考）：
+
+| 信号 | 来源 | 获取方式 | 日报中显示 |
+|------|------|----------|-----------|
+| 🔥 HN | HackerNews (Algolia API) | 搜索 arXiv ID，免费无需 key | `🔥HN Xpts/Ycmt` |
+| 📚 Citations | Semantic Scholar | API（免费申请 key） | `📚Ncites` |
+| 📰 Reddit | Reddit API | 需注册应用（预留接口） | 待接入 |
+| 🐦 X/Twitter | X API v2 | 需付费或 scraping（预留接口） | 待接入 |
+
+**热度信号架构**：
+- 统一接口 `scripts/heat_signals.py`：`fetch_all_heat(arxiv_id)` → 返回所有启用的信号
+- 缓存机制：6 小时 TTL，避免重复 API 调用
+- 新增信号只需：实现 `fetch_*` 函数 + 在 `HEAT_SOURCES` 中注册
+
 **LLM Rerank 流程**：
 1. 三源数据去重合并，预排序（基于主题匹配度 + 推荐历史 + 元信息）
 2. LLM 对每篇论文评估：relevance（主题相关度×2）、novelty（新颖性）、impact（影响力）
 3. 综合 score = (relevance×2 + novelty + impact) / 4，生成 Top Picks（≥7分）
-4. 最终报告按板块 + LLM 评分双维度呈现
+4. **热度信号独立显示**于每篇论文标题旁，不直接参与 LLM 评分，供阅读参考
+5. 最终报告按板块 + LLM 评分 + 热度信号三维度呈现
 
 ## 扩展方向（TODO）
 

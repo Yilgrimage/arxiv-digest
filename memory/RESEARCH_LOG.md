@@ -15,3 +15,11 @@
 **Top Picks**: Wasserstein DRO for RLHF (9.0), Mind the Gap SA-DPO (9.0), Co-Evolving Policy Distillation (9.0), TUR-DPO (8.5), RunAgent (8.5)
 
 Full report: `memory/digests/2026-05-04.md`
+
+
+--- 2026-05-05 ---
+
+[Full report: digests/2026-05-05.md]
+# ArXiv Daily Digest — 2026-05-05
+
+## 📊 今日概览

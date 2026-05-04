@@ -5,9 +5,18 @@ Supports: topic search, alphaxiv trending scrape, HuggingFace Daily Papers,
 recommendation history, detailed formatting with repeat detection,
 and LLM-ready raw output for rerank.
 """
-import json, subprocess, xml.etree.ElementTree as ET, urllib.parse, re
+import json, subprocess, xml.etree.ElementTree as ET, urllib.parse, re, sys
 from pathlib import Path
 from datetime import datetime
+
+# Import heat signal collector (if available)
+_HEAT_AVAILABLE = False
+try:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import heat_signals
+    _HEAT_AVAILABLE = True
+except Exception:
+    pass
 
 BASE = Path(__file__).resolve().parent.parent
 CONFIG_TOPICS = BASE / "config" / "topics.json"
@@ -177,7 +186,23 @@ def format_authors(authors):
         return ", ".join(authors)
     return f"{', '.join(authors[:3])} et al. ({len(authors)} authors)"
 
-def format_paper(paper, history, prefs, heat_source=None, llm_score=None, llm_reason=None, llm_zh_summary=None):
+def _format_heat_badge(heat_data):
+    """Format external heat signals as compact badge."""
+    badges = []
+    if "hn" in heat_data:
+        hn = heat_data["hn"]
+        pts = hn.get("points", 0)
+        cmt = hn.get("comments", 0)
+        if pts > 0 or cmt > 0:
+            badges.append(f"🔥HN {pts}pts/{cmt}cmt")
+    if "citations" in heat_data:
+        cit = heat_data["citations"]
+        cc = cit.get("citation_count", 0)
+        if cc > 0:
+            badges.append(f"📚{cc}cites")
+    return " | ".join(badges) if badges else ""
+
+def format_paper(paper, history, prefs, heat_source=None, llm_score=None, llm_reason=None, llm_zh_summary=None, heat_data=None):
     aid = paper.get("arxiv_id") or paper.get("title", "")
     h = history.get(aid, {})
     times = h.get("times_recommended", 0)
@@ -194,6 +219,11 @@ def format_paper(paper, history, prefs, heat_source=None, llm_score=None, llm_re
         badges.append(heat_source)
     if llm_score is not None:
         badges.append(f"🎯LLM评分:{llm_score}/10")
+    # External heat signals (HN, citations, etc.)
+    if heat_data:
+        heat_badge = _format_heat_badge(heat_data)
+        if heat_badge:
+            badges.append(heat_badge)
     if badges:
         title_line += " " + " ".join(badges)
     lines.append(title_line)
@@ -229,17 +259,19 @@ def format_paper(paper, history, prefs, heat_source=None, llm_score=None, llm_re
     lines.append("")
     return "\n".join(lines)
 
-def build_section(title, papers, history, prefs, heat_source=None, llm_scores=None):
+def build_section(title, papers, history, prefs, heat_source=None, llm_scores=None, heat_map=None):
     if not papers:
         return [f"## {title}", "", "_暂无新论文。_", ""]
     lines = [f"## {title}", ""]
     for idx, p in enumerate(papers):
         aid = p.get("arxiv_id") or p.get("title", "")
         score = llm_scores.get(aid) if llm_scores else None
+        heat_data = heat_map.get(aid) if heat_map else None
         lines.append(format_paper(p, history, prefs, heat_source=heat_source,
             llm_score=score.get("score") if score else None,
             llm_reason=score.get("reason") if score else None,
-            llm_zh_summary=score.get("zh_summary") if score else None))
+            llm_zh_summary=score.get("zh_summary") if score else None,
+            heat_data=heat_data))
     return lines
 
 def compute_paper_features(paper, topics):
@@ -463,6 +495,21 @@ def main():
     # 7. Pre-rank all papers
     all_papers = pre_rank_papers(all_papers, topics, history)
 
+    # 7.5 Fetch external heat signals (HN, citations, etc.)
+    heat_map = {}
+    if _HEAT_AVAILABLE:
+        print("Fetching external heat signals...")
+        for p in all_papers:
+            aid = p.get("arxiv_id", "")
+            if aid:
+                try:
+                    heat_map[aid] = heat_signals.fetch_all_heat(aid)
+                except Exception as e:
+                    print(f"  Heat signal error for {aid}: {e}")
+        # Stats: how many papers have HN activity
+        hn_active = sum(1 for h in heat_map.values() if h.get("hn", {}).get("points", 0) > 0)
+        print(f"  {hn_active}/{len(all_papers)} papers have HN discussion")
+
     # 8. Build digest
     date = today_str()
     digest = [f"# ArXiv Daily Digest — {date}", ""]
@@ -492,12 +539,12 @@ def main():
         scored.sort(key=lambda x: x[1], reverse=True)
         top_papers = [p for p, s in scored if s >= 7][:10]
         if top_papers:
-            digest.extend(build_section("🎯 LLM精选推荐（Top Picks）", top_papers, history, prefs, llm_scores=llm_scores))
+            digest.extend(build_section("🎯 LLM精选推荐（Top Picks）", top_papers, history, prefs, llm_scores=llm_scores, heat_map=heat_map))
 
     # Topic section
     digest.extend(build_section(
         prefs.get("topics", {}).get("label", "📌 关注领域"),
-        topic_papers, history, prefs
+        topic_papers, history, prefs, heat_map=heat_map
     ))
 
     # Cross-domain section
@@ -505,7 +552,7 @@ def main():
         digest.extend(build_section(
             cross_cfg.get("label", "🔥 跨领域热门"),
             cross_papers, history, prefs,
-            heat_source="🔥 alphaxiv trending"
+            heat_source="🔥 alphaxiv trending", heat_map=heat_map
         ))
 
     # HuggingFace section
@@ -513,7 +560,7 @@ def main():
         digest.extend(build_section(
             hf_cfg.get("label", "🤗 HuggingFace Daily"),
             hf_papers, history, prefs,
-            heat_source="🤗 HuggingFace"
+            heat_source="🤗 HuggingFace", heat_map=heat_map
         ))
 
     output = "\n".join(digest)
