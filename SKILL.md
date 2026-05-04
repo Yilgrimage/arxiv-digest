@@ -156,6 +156,9 @@ bash scripts/query_arxiv.sh "your topic" 5
 - [x] 按日期分文件保存日报（digests/YYYY-MM-DD.md）
 - [x] 周期性提炼：周总结 + 月总结
 - [x] 论文上下文对话机制（日报后追问自动识别论文）
+- [x] 外部热度信号：HackerNews 讨论度（🔥HN pts/cmt）
+- [ ] **外部热度信号：Reddit 讨论度（📰Reddit）**
+- [ ] **外部热度信号：Semantic Scholar 引用增速（📚Citations）**
+- [ ] **历史信息重构：单论文档案 + 语义检索 + callback 机制**
 - [ ] 支持按 arXiv category（cs.AI, cs.CL, cs.LG）订阅
-- [ ] 接入 Semantic Scholar 引用增速信号
 - [ ] 支持论文 PDF 自动下载 + 关键图表提取
