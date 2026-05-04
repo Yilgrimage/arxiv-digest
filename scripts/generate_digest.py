@@ -710,5 +710,16 @@ def main():
             f.write("\n".join(digest[:3]))  # Just header + stats anchor
             f.write("\n")
 
+    # 11. Callback detection: check filtered papers for heat surge
+    try:
+        import callback_detector
+        callbacks = callback_detector.detect_callbacks()
+        if callbacks:
+            print(f"Callback alert: {len(callbacks)} filtered papers have heat surge")
+            for c in callbacks:
+                print(f"  - {c['title']}: {c['reason']}")
+    except Exception as e:
+        print(f"Callback detection skipped: {e}")
+
 if __name__ == "__main__":
     main()

@@ -163,8 +163,15 @@ bash scripts/query_arxiv.sh "your topic" 5
 - [x] 周期性提炼：周总结 + 月总结
 - [x] 论文上下文对话机制（日报后追问自动识别论文）
 - [x] 外部热度信号：HackerNews 讨论度（🔥HN pts/cmt）
-- [ ] **外部热度信号：Reddit 讨论度（📰Reddit）**
-- [ ] **外部热度信号：Semantic Scholar 引用增速（📚Citations）**
-- [ ] **历史信息重构：单论文档案 + 语义检索 + callback 机制**
+- [x] **外部热度信号：Reddit 讨论度（📰Reddit）**
+- [x] **外部热度信号：Semantic Scholar 引用增速（📚Citations）**
+- [x] **历史信息重构：单论文档案 + 语义检索 + callback 机制**
+  - [x] Phase 1: Paper Archive (papers/{id}.json) + paper_index.json
+  - [x] Phase 2: Tags generation (5-10 keywords per paper)
+  - [x] Phase 3: Lightweight index auto-rebuild
+  - [x] Phase 4: Semantic search (search_papers.py)
+  - [x] Phase 5: Callback detector (heat surge detection for filtered papers)
+  - [ ] Phase 6: User feedback collection (qqbot reply parsing)
+  - [ ] Phase 7: Feedback weight tuning
 - [ ] 支持按 arXiv category（cs.AI, cs.CL, cs.LG）订阅
 - [ ] 支持论文 PDF 自动下载 + 关键图表提取
