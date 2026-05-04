@@ -254,6 +254,10 @@ def update_history(papers, llm_scores=None, heat_map=None):
                 "zh_summary": score_data.get("zh_summary", ""),
                 "reason": score_data.get("reason", ""),
             }
+            # Extract tags if provided by LLM
+            tags = score_data.get("tags", [])
+            if tags and isinstance(tags, list):
+                archive["tags"] = list(set(archive.get("tags", []) + tags))
             # Avoid duplicate evaluations on same day
             existing_dates = {e["date"] for e in archive["llm_evaluations"]}
             if today not in existing_dates:

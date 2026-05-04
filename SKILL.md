@@ -87,10 +87,16 @@ bash scripts/query_arxiv.sh "your topic" 5
 
 **论文上下文对话**：
 收到日报后，你回复任何包含论文标题、arXiv ID 或核心关键词的消息，agent 会自动：
-1. 识别你指的是哪篇论文（从最近7天的日报中匹配）
-2. 加载该论文的完整摘要和元信息
-3. 基于论文内容回答你的具体问题
-4. 如果论文不在最近日报中，自动去 arXiv 获取信息
+1. **优先检索历史档案**：运行 `python3 scripts/search_papers.py "你的查询"` 搜索所有历史论文（包括 filtered 的）
+2. 如果论文在日报中，加载完整摘要和元信息
+3. 如果论文不在日报中但在历史档案中，读取 `memory/papers/{arxiv_id}.json` 获取上下文
+4. 基于论文内容回答你的具体问题
+5. 如果论文完全不在历史中，自动去 arXiv 获取信息
+
+**检索示例**：
+- 你问："最近有没有 DPO 相关的？" → agent 检索所有历史论文的 tags + 标题，返回最相关的 Top 5
+- 你问："之前那篇关于 RLHF 奖励过优化的" → agent 检索 tags 匹配 "RLHF" + "奖励过优化"，找到 Wasserstein DRO 论文
+- 你问："TUR-DPO 详细讲讲" → agent 直接加载 `memory/papers/2605.00224.json` 回答
 
 **推送目标配置**：修改 `delivery.channel` 可切换目标频道：
 - `qqbot` → QQ 频道
