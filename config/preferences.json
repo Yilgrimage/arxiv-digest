@@ -1,0 +1,40 @@
+{
+  "summary": {
+    "max_length": 800,
+    "include_full_abstract": true,
+    "include_author_list": true,
+    "highlight_repeated": true,
+    "repeated_threshold": 2
+  },
+  "cross_domain": {
+    "enabled": true,
+    "max_papers": 5,
+    "source": "alphaxiv-trending",
+    "label": "🔥 跨领域热门"
+  },
+  "topics": {
+    "label": "📌 关注领域"
+  },
+  "huggingface": {
+    "enabled": true,
+    "max_papers": 5,
+    "label": "🤗 HuggingFace Daily"
+  },
+  "llm_rerank": {
+    "enabled": true,
+    "top_k": 10,
+    "score_threshold": 7,
+    "filter_threshold": 6.0,
+    "filter_low_score": true
+  },
+  "cron": {
+    "enabled": true,
+    "schedule": "0 9 * * *",
+    "timezone": "Asia/Shanghai"
+  },
+  "output": {
+    "format": "markdown",
+    "include_log": true,
+    "channel": "webchat"
+  }
+}
