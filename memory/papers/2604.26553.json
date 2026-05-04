@@ -1,0 +1,47 @@
+{
+  "arxiv_id": "2604.26553",
+  "title": "TLPO: Token-Level Policy Optimization for Mitigating Language Confusion in Large Language Models",
+  "authors": [
+    "Jinho Choo",
+    "JunSeung Lee",
+    "Jimyeong Kim",
+    "Yeeho Song",
+    "S. K. Hong",
+    "Yeong-Dae Kwon"
+  ],
+  "categories": [
+    "cs.CL",
+    "cs.AI",
+    "cs.LG"
+  ],
+  "first_seen": "2026-05-05",
+  "last_seen": "2026-05-05",
+  "llm_evaluations": [
+    {
+      "date": "2026-05-05",
+      "score": 6.3,
+      "relevance": 6,
+      "novelty": 7,
+      "impact": 6,
+      "zh_summary": "提出Token级策略优化TLPO，定位多语言LLM中的语言混淆错误位置，在token粒度上探索替代候选并局部更新策略，避免序列级微调的通用能力退化。",
+      "reason": "将DPO思想下放到token级别，粒度更细但应用场景偏窄（多语言混淆），对核心对齐方法的直接贡献有限。"
+    }
+  ],
+  "heat_timeline": [
+    {
+      "date": "2026-05-05",
+      "hn_points": 0,
+      "hn_comments": 0
+    }
+  ],
+  "tags": [],
+  "user_interactions": [],
+  "status": "active",
+  "status_history": [
+    {
+      "date": "2026-05-05",
+      "status": "active",
+      "reason": "LLM score 6.3"
+    }
+  ]
+}

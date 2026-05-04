@@ -23,3 +23,11 @@ Full report: `memory/digests/2026-05-04.md`
 # ArXiv Daily Digest — 2026-05-05
 
 ## 📊 今日概览
+
+
+--- 2026-05-05 ---
+
+[Full report: digests/2026-05-05.md]
+# ArXiv Daily Digest — 2026-05-05
+
+## 📊 今日概览

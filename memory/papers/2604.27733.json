@@ -1,0 +1,42 @@
+{
+  "arxiv_id": "2604.27733",
+  "title": "Mind the Gap: Structure-Aware Consistency in Preference Learning",
+  "authors": [
+    "Mehryar Mohri",
+    "Yutao Zhong"
+  ],
+  "categories": [
+    "cs.LG",
+    "stat.ML"
+  ],
+  "first_seen": "2026-05-05",
+  "last_seen": "2026-05-05",
+  "llm_evaluations": [
+    {
+      "date": "2026-05-05",
+      "score": 9.0,
+      "relevance": 9,
+      "novelty": 9,
+      "impact": 9,
+      "zh_summary": "证明神经网络等连续假设集下DPO等标准偏好学习替代损失理论上不一致，建立基于分离边距的排序框架，推导H一致性边界，提出根据响应语义距离自适应调整边距的SA-DPO目标。",
+      "reason": "从理论上动摇DPO等主流方法的根基，指出其泛化保证的空洞性，提出的结构感知一致性框架为偏好学习提供了更坚实的理论基础，Mohri团队的扎实理论工作。"
+    }
+  ],
+  "heat_timeline": [
+    {
+      "date": "2026-05-05",
+      "hn_points": 0,
+      "hn_comments": 0
+    }
+  ],
+  "tags": [],
+  "user_interactions": [],
+  "status": "active",
+  "status_history": [
+    {
+      "date": "2026-05-05",
+      "status": "active",
+      "reason": "LLM score 9.0"
+    }
+  ]
+}

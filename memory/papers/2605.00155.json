@@ -1,0 +1,45 @@
+{
+  "arxiv_id": "2605.00155",
+  "title": "Wasserstein Distributionally Robust Regret Optimization for Reinforcement Learning from Human Feedback",
+  "authors": [
+    "Yikai Wang",
+    "Shang Liu",
+    "Jose Blanchet"
+  ],
+  "categories": [
+    "cs.LG",
+    "cs.CL",
+    "math.OC",
+    "stat.ML"
+  ],
+  "first_seen": "2026-05-05",
+  "last_seen": "2026-05-05",
+  "llm_evaluations": [
+    {
+      "date": "2026-05-05",
+      "score": 9.0,
+      "relevance": 9,
+      "novelty": 9,
+      "impact": 9,
+      "zh_summary": "从运筹学视角将RLHF重新建模为分布鲁棒遗憾优化问题，用Wasserstein距离度量奖励模型与真实效用间的分布偏移，提出计算可处理的鲁棒优化框架解决奖励过优化。",
+      "reason": "直击RLHF的Goodhart定律核心难题，将成熟的分布鲁棒优化理论引入对齐领域，理论扎实且方法论新颖，对后训练对齐有深远影响。"
+    }
+  ],
+  "heat_timeline": [
+    {
+      "date": "2026-05-05",
+      "hn_points": 0,
+      "hn_comments": 0
+    }
+  ],
+  "tags": [],
+  "user_interactions": [],
+  "status": "active",
+  "status_history": [
+    {
+      "date": "2026-05-05",
+      "status": "active",
+      "reason": "LLM score 9.0"
+    }
+  ]
+}

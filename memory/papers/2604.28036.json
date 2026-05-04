@@ -1,0 +1,41 @@
+{
+  "arxiv_id": "2604.28036",
+  "title": "Exponential families from a single KL identity",
+  "authors": [
+    "Marc Dymetman"
+  ],
+  "categories": [
+    "cs.LG",
+    "cs.IT"
+  ],
+  "first_seen": "2026-05-05",
+  "last_seen": "2026-05-05",
+  "llm_evaluations": [
+    {
+      "date": "2026-05-05",
+      "score": 6.8,
+      "relevance": 6,
+      "novelty": 7,
+      "impact": 7,
+      "zh_summary": "从单一KL散度恒等式出发统一推导指数族分布的自然参数、期望参数和混合参数形式，揭示信息几何与凸分析的深层联系。",
+      "reason": "数学基础工作，与RLHF中的策略参数化、熵正则化有深层理论关联，但距离直接应用较远，适合关注理论基础的读者。"
+    }
+  ],
+  "heat_timeline": [
+    {
+      "date": "2026-05-05",
+      "hn_points": 0,
+      "hn_comments": 0
+    }
+  ],
+  "tags": [],
+  "user_interactions": [],
+  "status": "active",
+  "status_history": [
+    {
+      "date": "2026-05-05",
+      "status": "active",
+      "reason": "LLM score 6.8"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "arxiv_id": "2605.00817",
+  "title": "When LLMs Stop Following Steps: A Diagnostic Study of Procedural Execution in Language Models",
+  "authors": [
+    "Sailesh Panda",
+    "Pritam Kadasi",
+    "Abhishek Upperwal",
+    "Mayank Singh"
+  ],
+  "categories": [
+    "cs.CL"
+  ],
+  "first_seen": "2026-05-05",
+  "last_seen": "2026-05-05",
+  "llm_evaluations": [
+    {
+      "date": "2026-05-05",
+      "score": 7.5,
+      "relevance": 7,
+      "novelty": 8,
+      "impact": 7,
+      "zh_summary": "构建程序执行诊断基准测试LLM按步骤执行算法的忠实度，发现5步程序准确率61%降至95步的20%，揭示缺失答案、提前回答等失败模式。",
+      "reason": "通过系统性诊断基准量化LLM程序执行能力的衰减规律，对理解和提升agent推理可靠性有实际参考价值，但偏诊断而非方法改进。"
+    }
+  ],
+  "heat_timeline": [
+    {
+      "date": "2026-05-05",
+      "hn_points": 0,
+      "hn_comments": 0
+    }
+  ],
+  "tags": [],
+  "user_interactions": [],
+  "status": "active",
+  "status_history": [
+    {
+      "date": "2026-05-05",
+      "status": "active",
+      "reason": "LLM score 7.5"
+    }
+  ]
+}

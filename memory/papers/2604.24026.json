@@ -1,0 +1,44 @@
+{
+  "arxiv_id": "2604.24026",
+  "title": "From Skill Text to Skill Structure: The Scheduling-Structural-Logical Representation for Agent Skills",
+  "authors": [
+    "Qiliang Liang",
+    "Hansi Wang",
+    "Zhong Liang",
+    "Yang Liu"
+  ],
+  "categories": [
+    "cs.CL",
+    "cs.AI"
+  ],
+  "first_seen": "2026-05-05",
+  "last_seen": "2026-05-05",
+  "llm_evaluations": [
+    {
+      "date": "2026-05-05",
+      "score": 7.0,
+      "relevance": 7,
+      "novelty": 7,
+      "impact": 7,
+      "zh_summary": "提出调度-结构-逻辑(SSL)三层表示法，将文本化技能转化为显式结构化机器可读格式，分离调用接口、执行结构和副作用，提升Agent技能的获取和复用效率。",
+      "reason": "Agent基础设施层面的重要工作，直接解决当前LLM Agent技能管理的核心痛点，与LLM Agent主题高度相关。"
+    }
+  ],
+  "heat_timeline": [
+    {
+      "date": "2026-05-05",
+      "hn_points": 0,
+      "hn_comments": 0
+    }
+  ],
+  "tags": [],
+  "user_interactions": [],
+  "status": "active",
+  "status_history": [
+    {
+      "date": "2026-05-05",
+      "status": "active",
+      "reason": "LLM score 7.0"
+    }
+  ]
+}

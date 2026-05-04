@@ -1,0 +1,50 @@
+{
+  "arxiv_id": "2605.00327",
+  "title": "DynamicPO: Dynamic Preference Optimization for Recommendation",
+  "authors": [
+    "Xingyu Hu",
+    "Kai Zhang",
+    "Jiancan Wu",
+    "Shuli Wang",
+    "Chi Wang",
+    "Wenshuai Chen",
+    "Yinhua Zhu",
+    "Haitao Wang",
+    "Xingxing Wang",
+    "Xiang Wang"
+  ],
+  "categories": [
+    "cs.IR",
+    "cs.AI"
+  ],
+  "first_seen": "2026-05-05",
+  "last_seen": "2026-05-05",
+  "llm_evaluations": [
+    {
+      "date": "2026-05-05",
+      "score": 6.3,
+      "relevance": 6,
+      "novelty": 7,
+      "impact": 6,
+      "zh_summary": "发现LLM推荐系统中DPO存在'偏好优化崩溃'现象：负样本增多反而导致性能下降，归因于多负目标函数的梯度抑制效应，提出动态偏好优化解决该问题。",
+      "reason": "揭示DPO在推荐场景的反直觉失效模式，对理解DPO的优化动态有启发性，但应用场景偏离核心LLM对齐。"
+    }
+  ],
+  "heat_timeline": [
+    {
+      "date": "2026-05-05",
+      "hn_points": 0,
+      "hn_comments": 0
+    }
+  ],
+  "tags": [],
+  "user_interactions": [],
+  "status": "active",
+  "status_history": [
+    {
+      "date": "2026-05-05",
+      "status": "active",
+      "reason": "LLM score 6.3"
+    }
+  ]
+}

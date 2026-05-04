@@ -156,13 +156,59 @@ def load_history():
     data = load_json(HISTORY)
     return data.get("papers", {})
 
-def update_history(papers):
+PAPERS_DIR = BASE / "memory" / "papers"
+PAPER_INDEX = BASE / "memory" / "paper_index.json"
+
+def _load_paper_archive(arxiv_id):
+    """Load single paper archive from papers/ directory."""
+    path = PAPERS_DIR / f"{arxiv_id}.json"
+    if path.exists():
+        return json.loads(path.read_text(encoding="utf-8"))
+    return None
+
+def _save_paper_archive(arxiv_id, data):
+    """Save single paper archive to papers/ directory."""
+    PAPERS_DIR.mkdir(parents=True, exist_ok=True)
+    path = PAPERS_DIR / f"{arxiv_id}.json"
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+def _update_paper_index():
+    """Rebuild lightweight paper_index.json from all paper archives."""
+    if not PAPERS_DIR.exists():
+        return
+    index = {}
+    for f in PAPERS_DIR.glob("*.json"):
+        try:
+            data = json.loads(f.read_text(encoding="utf-8"))
+            aid = data.get("arxiv_id", f.stem)
+            evaluations = data.get("llm_evaluations", [])
+            last_score = evaluations[-1].get("score", 0) if evaluations else 0
+            index[aid] = {
+                "title": data.get("title", ""),
+                "tags": data.get("tags", []),
+                "status": data.get("status", "unknown"),
+                "last_score": last_score,
+                "last_seen": data.get("last_seen", ""),
+                "first_seen": data.get("first_seen", ""),
+            }
+        except Exception:
+            continue
+    PAPER_INDEX.parent.mkdir(parents=True, exist_ok=True)
+    PAPER_INDEX.write_text(json.dumps(index, ensure_ascii=False, indent=2), encoding="utf-8")
+
+def update_history(papers, llm_scores=None, heat_map=None):
+    """Update history, single paper archives, and paper index."""
     history = load_history()
     today = today_str()
+    llm_scores = llm_scores or {}
+    heat_map = heat_map or {}
+
     for p in papers:
         aid = p.get("arxiv_id") or p.get("title", "")
         if not aid:
             continue
+
+        # 1. Update legacy recommended_history.json
         if aid not in history:
             history[aid] = {
                 "title": p["title"],
@@ -176,7 +222,80 @@ def update_history(papers):
             history[aid]["times_recommended"] = len(history[aid]["dates"])
         history[aid]["last_recommended"] = today
         history[aid]["title"] = p["title"]
+
+        # 2. Update single paper archive
+        archive = _load_paper_archive(aid) or {
+            "arxiv_id": aid,
+            "title": p["title"],
+            "authors": p.get("authors", []),
+            "categories": p.get("categories", []),
+            "first_seen": today,
+            "last_seen": today,
+            "llm_evaluations": [],
+            "heat_timeline": [],
+            "tags": [],
+            "user_interactions": [],
+            "status": "new",
+            "status_history": [],
+        }
+
+        archive["title"] = p["title"]
+        archive["last_seen"] = today
+
+        # Append LLM evaluation if available
+        score_data = llm_scores.get(aid)
+        if score_data and isinstance(score_data, dict):
+            evaluation = {
+                "date": today,
+                "score": score_data.get("score", 0),
+                "relevance": score_data.get("relevance", 0),
+                "novelty": score_data.get("novelty", 0),
+                "impact": score_data.get("impact", 0),
+                "zh_summary": score_data.get("zh_summary", ""),
+                "reason": score_data.get("reason", ""),
+            }
+            # Avoid duplicate evaluations on same day
+            existing_dates = {e["date"] for e in archive["llm_evaluations"]}
+            if today not in existing_dates:
+                archive["llm_evaluations"].append(evaluation)
+                # Update status based on score
+                score = evaluation["score"]
+                if score >= 6.0:
+                    new_status = "active"
+                else:
+                    new_status = "filtered"
+                if archive["status"] != new_status:
+                    archive["status_history"].append({
+                        "date": today,
+                        "status": new_status,
+                        "reason": f"LLM score {score}"
+                    })
+                    archive["status"] = new_status
+
+        # Append heat data if available
+        heat_data = heat_map.get(aid)
+        if heat_data and isinstance(heat_data, dict):
+            heat_entry = {"date": today}
+            if "hn" in heat_data:
+                hn = heat_data["hn"]
+                heat_entry["hn_points"] = hn.get("points", 0)
+                heat_entry["hn_comments"] = hn.get("comments", 0)
+            if "citations" in heat_data:
+                cit = heat_data["citations"]
+                heat_entry["citation_count"] = cit.get("citation_count", 0)
+                heat_entry["influential_citations"] = cit.get("influential_citations", 0)
+            # Avoid duplicate heat entries on same day
+            existing_dates = {h["date"] for h in archive["heat_timeline"]}
+            if today not in existing_dates:
+                archive["heat_timeline"].append(heat_entry)
+
+        _save_paper_archive(aid, archive)
+
     save_json(HISTORY, {"papers": history})
+
+    # 3. Rebuild paper index
+    _update_paper_index()
+
     return history
 
 def format_authors(authors):
@@ -450,13 +569,12 @@ def main():
                 hf_papers.append(p)
         hf_papers = hf_papers[:max_hf]
 
-    # 4. Update history
+    # 4. Build all_papers list
     all_papers = topic_papers + cross_papers + hf_papers
-    history = update_history(all_papers)
 
     # 5. If --raw, output structured JSON and prompt, then exit
     if args.raw:
-        raw_data = build_raw_data(topic_papers, cross_papers, hf_papers, history, prefs, topics)
+        raw_data = build_raw_data(topic_papers, cross_papers, hf_papers, load_history(), prefs, topics)
         # Include ALL papers for parallel batch processing
         raw_data["total_papers"] = len(raw_data["papers"])
         save_json(RAW_OUT, raw_data)
@@ -493,7 +611,7 @@ def main():
         all_papers = topic_papers + cross_papers + hf_papers
 
     # 7. Pre-rank all papers
-    all_papers = pre_rank_papers(all_papers, topics, history)
+    all_papers = pre_rank_papers(all_papers, topics, load_history())
 
     # 7.5 Fetch external heat signals (HN, citations, etc.)
     heat_map = {}
@@ -509,6 +627,9 @@ def main():
         # Stats: how many papers have HN activity
         hn_active = sum(1 for h in heat_map.values() if h.get("hn", {}).get("points", 0) > 0)
         print(f"  {hn_active}/{len(all_papers)} papers have HN discussion")
+
+    # 7.75 Update history and paper archives (with full context)
+    history = update_history(all_papers, llm_scores=llm_scores, heat_map=heat_map)
 
     # 8. Build digest
     date = today_str()

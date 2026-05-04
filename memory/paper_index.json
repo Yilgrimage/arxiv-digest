@@ -1,0 +1,90 @@
+{
+  "2605.00236": {
+    "title": "Attention Is Where You Attack",
+    "tags": [],
+    "status": "active",
+    "last_score": 6.5,
+    "last_seen": "2026-05-05",
+    "first_seen": "2026-05-05"
+  },
+  "2604.27083": {
+    "title": "Co-Evolving Policy Distillation",
+    "tags": [],
+    "status": "active",
+    "last_score": 9.0,
+    "last_seen": "2026-05-05",
+    "first_seen": "2026-05-05"
+  },
+  "2605.00224": {
+    "title": "TUR-DPO: Topology- and Uncertainty-Aware Direct Preference Optimization",
+    "tags": [],
+    "status": "active",
+    "last_score": 8.5,
+    "last_seen": "2026-05-05",
+    "first_seen": "2026-05-05"
+  },
+  "2605.00798": {
+    "title": "RunAgent: Interpreting Natural-Language Plans with Constraint-Guided Execution",
+    "tags": [],
+    "status": "active",
+    "last_score": 8.5,
+    "last_seen": "2026-05-05",
+    "first_seen": "2026-05-05"
+  },
+  "2605.00327": {
+    "title": "DynamicPO: Dynamic Preference Optimization for Recommendation",
+    "tags": [],
+    "status": "active",
+    "last_score": 6.3,
+    "last_seen": "2026-05-05",
+    "first_seen": "2026-05-05"
+  },
+  "2605.00817": {
+    "title": "When LLMs Stop Following Steps: A Diagnostic Study of Procedural Execution in Language Models",
+    "tags": [],
+    "status": "active",
+    "last_score": 7.5,
+    "last_seen": "2026-05-05",
+    "first_seen": "2026-05-05"
+  },
+  "2604.26553": {
+    "title": "TLPO: Token-Level Policy Optimization for Mitigating Language Confusion in Large Language Models",
+    "tags": [],
+    "status": "active",
+    "last_score": 6.3,
+    "last_seen": "2026-05-05",
+    "first_seen": "2026-05-05"
+  },
+  "2605.00155": {
+    "title": "Wasserstein Distributionally Robust Regret Optimization for Reinforcement Learning from Human Feedback",
+    "tags": [],
+    "status": "active",
+    "last_score": 9.0,
+    "last_seen": "2026-05-05",
+    "first_seen": "2026-05-05"
+  },
+  "2604.27733": {
+    "title": "Mind the Gap: Structure-Aware Consistency in Preference Learning",
+    "tags": [],
+    "status": "active",
+    "last_score": 9.0,
+    "last_seen": "2026-05-05",
+    "first_seen": "2026-05-05"
+  },
+  "2604.24026": {
+    "title": "From Skill Text to Skill Structure: The Scheduling-Structural-Logical Representation for Agent Skills",
+    "tags": [],
+    "status": "active",
+    "last_score": 7.0,
+    "last_seen": "2026-05-05",
+    "first_seen": "2026-05-05"
+  },
+  "2604.28036": {
+    "title": "Exponential families from a single KL identity",
+    "tags": [],
+    "status": "active",
+    "last_score": 6.8,
+    "last_seen": "2026-05-05",
+    "first_seen": "2026-05-05"
+  }
+}

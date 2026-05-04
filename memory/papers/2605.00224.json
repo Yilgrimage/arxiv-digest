@@ -1,0 +1,43 @@
+{
+  "arxiv_id": "2605.00224",
+  "title": "TUR-DPO: Topology- and Uncertainty-Aware Direct Preference Optimization",
+  "authors": [
+    "Abdulhady Abas Abdullah",
+    "Fatemeh Daneshfar",
+    "Seyedali Mirjalili",
+    "Mourad Oussalah"
+  ],
+  "categories": [
+    "cs.AI"
+  ],
+  "first_seen": "2026-05-05",
+  "last_seen": "2026-05-05",
+  "llm_evaluations": [
+    {
+      "date": "2026-05-05",
+      "score": 8.5,
+      "relevance": 9,
+      "novelty": 8,
+      "impact": 8,
+      "zh_summary": "提出拓扑与不确定性感知的DPO变体TUR-DPO，通过构建答案推导过程的轻量级推理拓扑，将语义忠实度、效用和拓扑质量融合为校准的不确定性信号，解决DPO对噪声偏好的脆弱性。",
+      "reason": "直接针对DPO核心缺陷，引入拓扑结构捕捉推理过程而非仅结果，ICML 2026录用，方法新颖且实用性强，对偏好学习有直接影响。"
+    }
+  ],
+  "heat_timeline": [
+    {
+      "date": "2026-05-05",
+      "hn_points": 0,
+      "hn_comments": 0
+    }
+  ],
+  "tags": [],
+  "user_interactions": [],
+  "status": "active",
+  "status_history": [
+    {
+      "date": "2026-05-05",
+      "status": "active",
+      "reason": "LLM score 8.5"
+    }
+  ]
+}

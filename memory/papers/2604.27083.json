@@ -1,0 +1,49 @@
+{
+  "arxiv_id": "2604.27083",
+  "title": "Co-Evolving Policy Distillation",
+  "authors": [
+    "Naibin Gu",
+    "Chenxu Yang",
+    "Qingyi Si",
+    "Chuanyu Qin",
+    "Dingyu Yao",
+    "Peng Fu",
+    "Zheng Lin",
+    "Weiping Wang",
+    "Nan Duan",
+    "Jiaqi Wang"
+  ],
+  "categories": [
+    "cs.LG"
+  ],
+  "first_seen": "2026-05-05",
+  "last_seen": "2026-05-05",
+  "llm_evaluations": [
+    {
+      "date": "2026-05-05",
+      "score": 9.0,
+      "relevance": 9,
+      "novelty": 8,
+      "impact": 10,
+      "zh_summary": "统一分析RLVR和OPD两种后训练范式在融合多专家能力时的互补缺陷：RLVR存在能力间发散成本，OPD因教师-学生行为差异大导致吸收不足，提出协同进化策略蒸馏CoPD让专家在训练过程中相互蒸馏双向进化。",
+      "reason": "直接针对LLM后训练的多能力融合核心难题，统一分析两大范式的理论缺陷并提出优雅的协同进化方案，对大规模LLM训练实践有重要指导价值，alphaxiv trending验证社区关注度。"
+    }
+  ],
+  "heat_timeline": [
+    {
+      "date": "2026-05-05",
+      "hn_points": 0,
+      "hn_comments": 0
+    }
+  ],
+  "tags": [],
+  "user_interactions": [],
+  "status": "active",
+  "status_history": [
+    {
+      "date": "2026-05-05",
+      "status": "active",
+      "reason": "LLM score 9.0"
+    }
+  ]
+}

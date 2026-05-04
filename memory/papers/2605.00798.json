@@ -1,0 +1,46 @@
+{
+  "arxiv_id": "2605.00798",
+  "title": "RunAgent: Interpreting Natural-Language Plans with Constraint-Guided Execution",
+  "authors": [
+    "Arunabh Srivastava",
+    "Mohammad A.",
+    " Khojastepour",
+    "Srimat Chakradhar",
+    "Sennur Ulukus"
+  ],
+  "categories": [
+    "cs.LG",
+    "cs.CL",
+    "cs.MA"
+  ],
+  "first_seen": "2026-05-05",
+  "last_seen": "2026-05-05",
+  "llm_evaluations": [
+    {
+      "date": "2026-05-05",
+      "score": 8.5,
+      "relevance": 8,
+      "novelty": 8,
+      "impact": 9,
+      "zh_summary": "提出RunAgent多智能体计划执行平台，设计带显式控制结构(IF/GOTO/FORALL)的agentic语言，将自然语言计划翻译为约束引导的逐步执行，实现语法语义双重验证。",
+      "reason": "将自然语言的表达力与程序执行的确定性结合，直接解决LLM Agent结构化执行可靠性的核心痛点，对提升agent工作流有明确实用价值。"
+    }
+  ],
+  "heat_timeline": [
+    {
+      "date": "2026-05-05",
+      "hn_points": 0,
+      "hn_comments": 0
+    }
+  ],
+  "tags": [],
+  "user_interactions": [],
+  "status": "active",
+  "status_history": [
+    {
+      "date": "2026-05-05",
+      "status": "active",
+      "reason": "LLM score 8.5"
+    }
+  ]
+}

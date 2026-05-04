@@ -1,0 +1,42 @@
+{
+  "arxiv_id": "2605.00236",
+  "title": "Attention Is Where You Attack",
+  "authors": [
+    "Aviral Srivastava",
+    "Sourav Panda"
+  ],
+  "categories": [
+    "cs.CR",
+    "cs.AI"
+  ],
+  "first_seen": "2026-05-05",
+  "last_seen": "2026-05-05",
+  "llm_evaluations": [
+    {
+      "date": "2026-05-05",
+      "score": 6.5,
+      "relevance": 6,
+      "novelty": 7,
+      "impact": 6,
+      "zh_summary": "提出ARA攻击方法识别安全关键注意力头，通过非语义对抗token重定向注意力分布，绕过RLHF安全对齐机制。",
+      "reason": "从注意力机制角度揭示RLHF安全对齐的脆弱性，对理解和加固LLM安全性有一定价值，但属于攻击面研究而非核心对齐方法改进。"
+    }
+  ],
+  "heat_timeline": [
+    {
+      "date": "2026-05-05",
+      "hn_points": 0,
+      "hn_comments": 0
+    }
+  ],
+  "tags": [],
+  "user_interactions": [],
+  "status": "active",
+  "status_history": [
+    {
+      "date": "2026-05-05",
+      "status": "active",
+      "reason": "LLM score 6.5"
+    }
+  ]
+}
