@@ -7,3 +7,5 @@ memory/recommended_history.json
 
 # Proxy setup is environment-specific
 PROXY_SETUP.md
+*.pyc
+__pycache__/
