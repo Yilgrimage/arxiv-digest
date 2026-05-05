@@ -42,12 +42,40 @@ def save_json(path, data):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
-def fetch_url(url, timeout=60):
-    result = subprocess.run(
-        ["curl", "-sL", "--max-time", str(timeout), url],
-        capture_output=True, text=True, timeout=timeout + 10
-    )
-    return result.stdout
+def fetch_url(url, timeout=60, retries=3):
+    for attempt in range(retries):
+        result = subprocess.run(
+            ["curl", "-sL", "--max-time", str(timeout), "--connect-timeout", "15", "-w", "\n___CURL_HTTP_CODE:%{http_code}\n", url],
+            capture_output=True, text=True, timeout=timeout + 10
+        )
+        http_code = None
+        body = result.stdout
+        if "___CURL_HTTP_CODE:" in result.stdout:
+            parts = result.stdout.rsplit("___CURL_HTTP_CODE:", 1)
+            body = parts[0]
+            try:
+                http_code = int(parts[1].strip().split()[0])
+            except Exception:
+                pass
+
+        if result.returncode != 0:
+            print(f"  [fetch_url] curl failed (exit={result.returncode}, attempt {attempt+1}/{retries}): {result.stderr[:200]}")
+            if attempt < retries - 1:
+                import time
+                time.sleep(2 ** attempt)  # exponential backoff: 1s, 2s, 4s
+            continue
+
+        # Check for rate limiting (429)
+        if http_code == 429 or body.strip() == "Rate exceeded.":
+            print(f"  [fetch_url] Rate limited (429), attempt {attempt+1}/{retries}. Backing off...")
+            if attempt < retries - 1:
+                import time
+                time.sleep(2 ** attempt)
+            continue
+
+        return body
+    print(f"  [fetch_url] All {retries} attempts failed for {url}")
+    return ""
 
 def fetch_huggingface_papers(max_papers=10):
     """Scrape HuggingFace Daily Papers page for today's papers."""
@@ -92,6 +120,10 @@ def fetch_by_ids(ids, count_per_batch=20):
         xml = fetch_url(url)
         if xml:
             all_papers.extend(parse_arxiv_xml(xml))
+        # arXiv API ToU: 3 second delay between requests when making multiple calls
+        if i + count_per_batch < len(ids):
+            import time
+            time.sleep(3)
     return all_papers
 
 def fetch_by_topic(topic, count=5):
@@ -104,7 +136,14 @@ def fetch_by_topic(topic, count=5):
     return []
 
 def parse_arxiv_xml(xml_text):
-    root = ET.fromstring(xml_text)
+    if not xml_text or not xml_text.strip().startswith("<"):
+        print(f"  [parse_arxiv_xml] invalid/non-XML response (len={len(xml_text)})")
+        return []
+    try:
+        root = ET.fromstring(xml_text)
+    except ET.ParseError as e:
+        print(f"  [parse_arxiv_xml] XML parse error: {e}")
+        return []
     papers = []
     for entry in root.findall("atom:entry", NS):
         title_el = entry.find("atom:title", NS)
@@ -366,8 +405,6 @@ def format_paper(paper, history, prefs, heat_source=None, llm_score=None, llm_re
         if len(zh) > max_len:
             zh = zh[:max_len].rsplit(" ", 1)[0] + " ..."
         lines.append(f"- **摘要**: {zh}")
-        en = summary[:max_len].rsplit(" ", 1)[0] + " ..." if len(summary) > max_len else summary
-        lines.append(f"- **Abstract**: {en}")
     else:
         display_summary = summary
         if len(display_summary) > max_len:
@@ -524,6 +561,102 @@ def generate_rerank_prompt(raw_data):
     lines.append("Output valid JSON only.")
     return "\n".join(lines)
 
+# ─── arXiv API rate-limit tracking ───
+_arxiv_last_call = 0.0
+
+def _arxiv_call_delay(min_interval=3.0):
+    """Ensure at least `min_interval` seconds between arXiv API calls."""
+    global _arxiv_last_call
+    import time
+    elapsed = time.time() - _arxiv_last_call
+    if elapsed < min_interval:
+        wait = min_interval - elapsed
+        print(f"  [rate-limit] sleeping {wait:.1f}s before next arXiv call")
+        time.sleep(wait)
+    _arxiv_last_call = time.time()
+
+# ─── huggingface ID-only fetcher (split from paper fetcher) ───
+def fetch_huggingface_ids(max_papers=10):
+    """Scrape HuggingFace Daily Papers page, return arXiv ID list only."""
+    html = fetch_url("https://huggingface.co/papers", timeout=30)
+    if not html:
+        return []
+    ids = re.findall(r'/papers/(\d{4}\.\d+)', html)
+    seen = set()
+    unique_ids = []
+    for pid in ids:
+        if pid not in seen:
+            seen.add(pid)
+            unique_ids.append(pid)
+    return unique_ids[:max_papers * 2]
+
+def fetch_huggingface_papers(max_papers=10):
+    """Legacy: scrape HF page + fetch details from arXiv."""
+    ids = fetch_huggingface_ids(max_papers=max_papers)
+    if not ids:
+        return []
+    papers = fetch_by_ids(ids[:max_papers * 2])
+    return papers[:max_papers]
+
+FETCH_PROGRESS = BASE / "memory" / ".fetch_progress.json"
+
+def load_fetch_progress():
+    """Load fetch progress; return empty if stale (not today)."""
+    if not FETCH_PROGRESS.exists():
+        return {"date": today_str(), "sources": {}}
+    data = json.loads(FETCH_PROGRESS.read_text(encoding="utf-8"))
+    if data.get("date") != today_str():
+        return {"date": today_str(), "sources": {}}
+    return data
+
+def save_fetch_progress(data):
+    FETCH_PROGRESS.parent.mkdir(parents=True, exist_ok=True)
+    FETCH_PROGRESS.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+def fetch_source_with_progress(progress, source_key, fetch_fn, *args, **kwargs):
+    """Fetch a single source respecting progress; update and save on result.
+    Status: ok (has data), empty (returned [] — not an error), failed (network/API error).
+    """
+    today = today_str()
+    # Already succeeded today?
+    entry = progress["sources"].get(source_key)
+    if entry and entry.get("status") == "ok" and entry.get("date") == today:
+        print(f"  [{source_key}] using cached progress ({len(entry.get('papers', []))} papers)")
+        return entry.get("papers", [])
+
+    # Attempt fetch
+    print(f"  [{source_key}] fetching...")
+    try:
+        papers = fetch_fn(*args, **kwargs)
+    except Exception as e:
+        print(f"  [{source_key}] exception: {e}")
+        papers = []
+
+    # Determine status
+    # "failed" means we suspect a network/API error (empty result when it shouldn't be)
+    # "empty" means a legitimate empty dataset (e.g. no trending IDs today)
+    # For arXiv fetches, empty == failed because there should always be some result
+    # For non-arXiv scrapers, empty is acceptable
+    is_arxiv_source = "arxiv" in source_key or "papers" in source_key
+    if papers:
+        status = "ok"
+        error = None
+    else:
+        # Heuristic: if this is an arXiv API call, empty means failed
+        status = "failed" if is_arxiv_source else "empty"
+        error = "fetch returned empty"
+
+    progress["sources"][source_key] = {
+        "date": today,
+        "status": status,
+        "papers": papers,
+        "paper_count": len(papers),
+        "error": error,
+    }
+    save_fetch_progress(progress)
+    print(f"  [{source_key}] → {status} ({len(papers)} papers)")
+    return papers
+
 def main():
     import argparse
     parser = argparse.ArgumentParser()
@@ -537,41 +670,52 @@ def main():
     topics = topics_cfg.get("topics", [])
     per_topic = topics_cfg.get("per_topic_count", 5)
 
-    # 1. Fetch topic papers
+    # Load progress for incremental fetching
+    progress = load_fetch_progress()
+
+    # 1. Fetch topic papers (each independently tracked, arXiv API)
     topic_papers = []
     seen = set()
-    for topic in topics:
-        papers = fetch_by_topic(topic, per_topic)
+    for idx, topic in enumerate(topics):
+        source_key = f"topic:{topic}"
+        if idx > 0:
+            _arxiv_call_delay()
+        papers = fetch_source_with_progress(progress, source_key, fetch_by_topic, topic, per_topic)
         for p in papers:
             if p["title"] not in seen:
                 seen.add(p["title"])
                 topic_papers.append(p)
 
-    # 2. Fetch cross-domain trending from alphaxiv
+    # 2. Fetch cross-domain trending from alphaxiv (two stages: IDs from alphaxiv, details from arXiv)
     cross_papers = []
     cross_cfg = prefs.get("cross_domain", {})
     if cross_cfg.get("enabled", True):
         max_cross = cross_cfg.get("max_papers", 5)
-        ids = fetch_alphaxiv_ids(max_ids=max_cross * 2)
+        ids = fetch_source_with_progress(progress, "alphaxiv_ids", fetch_alphaxiv_ids, max_ids=max_cross * 2)
         if ids:
-            papers = fetch_by_ids(ids)
+            # Now fetch paper details from arXiv API — tracked separately + rate-limited
+            _arxiv_call_delay()
+            papers = fetch_source_with_progress(progress, "alphaxiv_papers", fetch_by_ids, ids)
             for p in papers:
                 if p["title"] not in seen:
                     seen.add(p["title"])
                     cross_papers.append(p)
             cross_papers = cross_papers[:max_cross]
 
-    # 3. Fetch HuggingFace Daily Papers
+    # 3. Fetch HuggingFace Daily Papers (two stages: IDs from HF, details from arXiv)
     hf_papers = []
     hf_cfg = prefs.get("huggingface", {})
     if hf_cfg.get("enabled", True):
         max_hf = hf_cfg.get("max_papers", 5)
-        papers = fetch_huggingface_papers(max_papers=max_hf)
-        for p in papers:
-            if p["title"] not in seen:
-                seen.add(p["title"])
-                hf_papers.append(p)
-        hf_papers = hf_papers[:max_hf]
+        hf_ids = fetch_source_with_progress(progress, "huggingface_ids", fetch_huggingface_ids, max_papers=max_hf)
+        if hf_ids:
+            _arxiv_call_delay()
+            papers = fetch_source_with_progress(progress, "huggingface_papers", fetch_by_ids, hf_ids)
+            for p in papers:
+                if p["title"] not in seen:
+                    seen.add(p["title"])
+                    hf_papers.append(p)
+            hf_papers = hf_papers[:max_hf]
 
     # 4. Build all_papers list
     all_papers = topic_papers + cross_papers + hf_papers
@@ -579,11 +723,34 @@ def main():
     # 5. If --raw, output structured JSON and prompt, then exit
     if args.raw:
         raw_data = build_raw_data(topic_papers, cross_papers, hf_papers, load_history(), prefs, topics)
-        # Include ALL papers for parallel batch processing
         raw_data["total_papers"] = len(raw_data["papers"])
-        save_json(RAW_OUT, raw_data)
-        print(f"Raw data saved to {RAW_OUT} ({len(raw_data['papers'])} papers total)")
-        return
+
+        # Summarize source health
+        ok_sources = sum(1 for s in progress["sources"].values() if s.get("status") == "ok")
+        total_sources = len(progress["sources"])
+
+        # Save if we got ANY papers — partial data is useful and retryable
+        today = today_str()
+        if raw_data.get("date") != today:
+            raw_data["date"] = today
+
+        if raw_data["total_papers"] > 0:
+            save_json(RAW_OUT, raw_data)
+            print(f"Raw data saved to {RAW_OUT} ({len(raw_data['papers'])} papers, {ok_sources}/{total_sources} sources ok)")
+            # Report which sources are still failing so caller can retry
+            failed = [k for k, s in progress["sources"].items() if s.get("status") != "ok"]
+            if failed:
+                print(f"WARNING: some sources still pending — {', '.join(failed)}")
+                # Exit with code 2 to signal "partial success, retry recommended"
+                sys.exit(2)
+            return
+        else:
+            print("ERROR: No papers fetched from any source. All sources failed.")
+            print(f"  Source status: {ok_sources}/{total_sources} ok")
+            failed = [k for k, s in progress["sources"].items() if s.get("status") != "ok"]
+            if failed:
+                print(f"  Pending sources: {', '.join(failed)}")
+            sys.exit(1)
 
     # 6. Load LLM rerank scores if provided, fill missing with default 5.0
     llm_scores = {}
@@ -658,35 +825,25 @@ def main():
         digest.append(f"- 🔥🔥 持续热门: {len(repeated)} 篇")
     digest.append("")
 
-    # Top recommendations (if LLM reranked)
-    if llm_scores:
-        scored = [(p, llm_scores.get(p.get("arxiv_id") or p.get("title", ""), {}).get("score", 0)) for p in all_papers]
-        scored.sort(key=lambda x: x[1], reverse=True)
-        top_papers = [p for p, s in scored if s >= 7][:10]
-        if top_papers:
-            digest.extend(build_section("🎯 LLM精选推荐（Top Picks）", top_papers, history, prefs, llm_scores=llm_scores, heat_map=heat_map))
-
-    # Topic section
+    # Topic section (includes all scored papers, users read scores themselves)
     digest.extend(build_section(
         prefs.get("topics", {}).get("label", "📌 关注领域"),
         topic_papers, history, prefs, heat_map=heat_map
     ))
 
     # Cross-domain section
-    if cross_papers:
-        digest.extend(build_section(
-            cross_cfg.get("label", "🔥 跨领域热门"),
-            cross_papers, history, prefs,
-            heat_source="🔥 alphaxiv trending", heat_map=heat_map
-        ))
+    digest.extend(build_section(
+        cross_cfg.get("label", "🔥 跨领域热门"),
+        cross_papers, history, prefs,
+        heat_source="🔥 alphaxiv trending", heat_map=heat_map
+    ))
 
     # HuggingFace section
-    if hf_papers:
-        digest.extend(build_section(
-            hf_cfg.get("label", "🤗 HuggingFace Daily"),
-            hf_papers, history, prefs,
-            heat_source="🤗 HuggingFace", heat_map=heat_map
-        ))
+    digest.extend(build_section(
+        hf_cfg.get("label", "🤗 HuggingFace Daily"),
+        hf_papers, history, prefs,
+        heat_source="🤗 HuggingFace", heat_map=heat_map
+    ))
 
     output = "\n".join(digest)
 
